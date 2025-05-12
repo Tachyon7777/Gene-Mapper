@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeneMapper | Interactive Tool</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --dna-blue: #3fefef;
+      --mRNA-purple: #b86eff;
+      --protein-green: #6eff8e;
+      --dark-bg: #101820;
+      --darker-bg: #0a1018;
+      --error-red: #ff6e6e;
+      --font-main: 'Rajdhani', sans-serif;
+      --font-mono: 'Courier New', monospace;
+      --highlight-start: #a3f7bf;
+      --highlight-stop: #ff7e7e;
+      --highlight-mutation: #ffe066;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--dark-bg), var(--darker-bg));
+      color: white;
+      font-family: var(--font-main);
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .app-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: rgba(16, 24, 32, 0.7);
+      border-radius: 15px;
+      box-shadow: 0 0 30px rgba(63, 239, 239, 0.1);
+    }
+
+    h1, h2, h3 {
+      background: linear-gradient(to right, var(--dna-blue), var(--mRNA-purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1.2rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      background: rgba(10, 16, 24, 0.8);
+      color: var(--dna-blue);
+      font-family: var(--font-mono);
+      font-size: 1.2rem;
+      padding: 1rem;
+      border: 1px solid rgba(63, 239, 239, 0.3);
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    .glow-button {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      margin: 1rem 0.3rem 0 0.3rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      animation: pulse 2s infinite;
+    }
+
+    .glow-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #7c3aed;
+    }
+
+    .mutate-button {
+      background: #ef3f3f;
+    }
+
+    .copy-btn {
+      margin-left: 0.5rem;
+      background: #444;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .copy-btn:hover {
+      background: #666;
+    }
+
+    .output-container {
+      background: rgba(26, 42, 58, 0.5);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .sequence {
+      font-family: var(--font-mono);
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      line-height: 1.8;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 5px;
+      padding: 1rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .protein-chain {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .protein-chain span {
+      background: var(--protein-green);
+      color: #0a1018;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      font-weight: 600;
+      animation: popIn 0.4s ease-out backwards;
+    }
+
+    .mutation-controls {
+      background: rgba(184, 110, 255, 0.1);
+      border: 2px dashed var(--mRNA-purple);
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin-top: 2rem;
+    }
+
+    .mutation-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+
+    .mutation-options button {
+      padding: 0.7rem 1rem;
+      background: rgba(63, 239, 239, 0.1);
+      border: 1px solid var(--dna-blue);
+      color: var(--dna-blue);
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .mutation-options button:hover {
+      background: rgba(63, 239, 239, 0.3);
+    }
+
+    .log {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      max-height: 200px;
+      overflow-y: auto;
+      color: #ccc;
+      margin-top: 1rem;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .highlight-start {
+      background: var(--highlight-start);
+      color: #000;
+    }
+
+    .highlight-stop {
+      background: var(--highlight-stop);
+      color: #000;
+    }
+
+    .highlight-mutation {
+      background: var(--highlight-mutation);
+      color: #000;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(124, 58, 237, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+    }
+
+    @media (max-width: 600px) {
+      .protein-chain {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .mutation-options {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+    <div class="app-container">
+      <h1 class="dna-title">DNA Mapper</h1>
+  
+      <!-- DNA Input -->
+      <div class="dna-input-container">
+        <textarea id="dnaSequence" placeholder="Enter DNA sequence (e.g. ATGCCGTA...)"></textarea><br>
+        <button id="transcribeBtn" class="glow-button">Transcribe → mRNA</button>
+        <button id="copyDNA" class="copy-btn">Copy DNA</button>
+      </div>
+  
+      <!-- mRNA Output -->
+      <div class="output-container hidden" id="mrnaContainer">
+        <h2>mRNA Sequence</h2>
+        <div class="sequence" id="mrnaSequence"></div>
+        <button id="translateBtn" class="glow-button">Translate → Protein</button>
+        <button id="copymRNA" class="copy-btn">Copy mRNA</button>
+      </div>
+  
+      <!-- Protein Output -->
+      <div class="output-container hidden" id="proteinContainer">
+        <h2>Protein Chain</h2>
+        <div class="protein-chain" id="proteinChain"></div>
+        <button id="mutateBtn" class="mutate-button glow-button">Mutate This Gene?</button>
+        <button id="copyProtein" class="copy-btn">Copy Protein</button>
+      </div>
+  
+      <!-- Mutation Controls -->
+      <div class="mutation-controls hidden" id="mutationControls">
+        <h2>Introduce Mutations</h2>
+        <div class="mutation-options">
+          <button data-type="substitution">Random Substitution</button>
+          <button data-type="insertion">Random Insertion</button>
+          <button data-type="deletion">Random Deletion</button>
+        </div>
+        <h3>Mutation Log</h3>
+        <div id="mutationLog" class="log"></div>
+        <button id="resetBtn" class="glow-button">Hide Controls</button>
+      </div>
+    </div>
+  
+    <script>
+      const codonTable = {
+        'AUG': 'Methionine (Start)', 'UUU': 'Phenylalanine', 'UUC': 'Phenylalanine',
+        'UUA': 'Leucine', 'UUG': 'Leucine', 'CUU': 'Leucine', 'CUC': 'Leucine',
+        'CUA': 'Leucine', 'CUG': 'Leucine', 'AUU': 'Isoleucine', 'AUC': 'Isoleucine',
+        'AUA': 'Isoleucine', 'GUU': 'Valine', 'GUC': 'Valine', 'GUA': 'Valine',
+        'GUG': 'Valine', 'UCU': 'Serine', 'UCC': 'Serine', 'UCA': 'Serine',
+        'UCG': 'Serine', 'CCU': 'Proline', 'CCC': 'Proline', 'CCA': 'Proline',
+        'CCG': 'Proline', 'ACU': 'Threonine', 'ACC': 'Threonine', 'ACA': 'Threonine',
+        'ACG': 'Threonine', 'GCU': 'Alanine', 'GCC': 'Alanine', 'GCA': 'Alanine',
+        'GCG': 'Alanine', 'UAU': 'Tyrosine', 'UAC': 'Tyrosine', 'CAU': 'Histidine',
+        'CAC': 'Histidine', 'CAA': 'Glutamine', 'CAG': 'Glutamine',
+        'AAU': 'Asparagine', 'AAC': 'Asparagine', 'AAA': 'Lysine', 'AAG': 'Lysine',
+        'GAU': 'Aspartic Acid', 'GAC': 'Aspartic Acid', 'GAA': 'Glutamic Acid',
+        'GAG': 'Glutamic Acid', 'UGU': 'Cysteine', 'UGC': 'Cysteine', 'UGG': 'Tryptophan',
+        'CGU': 'Arginine', 'CGC': 'Arginine', 'CGA': 'Arginine', 'CGG': 'Arginine',
+        'AGU': 'Serine', 'AGC': 'Serine', 'AGA': 'Arginine', 'AGG': 'Arginine',
+        'GGU': 'Glycine', 'GGC': 'Glycine', 'GGA': 'Glycine', 'GGG': 'Glycine',
+        'UAA': 'STOP', 'UAG': 'STOP', 'UGA': 'STOP'
+      };
+  
+      const dnaInput = document.getElementById('dnaSequence');
+      const transcribeBtn = document.getElementById('transcribeBtn');
+      const translateBtn = document.getElementById('translateBtn');
+      const mutateBtn = document.getElementById('mutateBtn');
+      const mrnaContainer = document.getElementById('mrnaContainer');
+      const proteinContainer = document.getElementById('proteinContainer');
+      const mutationControls = document.getElementById('mutationControls');
+      const mutationLog = document.getElementById('mutationLog');
+  
+      const copy = (id) => {
+        const el = document.getElementById(id);
+        const text = el.textContent || el.value || '';
+        navigator.clipboard.writeText(text.trim());
+        alert(`${id.replace('Sequence', '')} copied to clipboard.`);
+      };
+  
+      document.getElementById('copyDNA').onclick = () => copy('dnaSequence');
+      document.getElementById('copymRNA').onclick = () => copy('mrnaSequence');
+      document.getElementById('copyProtein').onclick = () => copy('proteinChain');
+  
+      transcribeBtn.addEventListener('click', () => {
+        let dna = dnaInput.value.toUpperCase().replace(/[^ATCG]/g, '');
+        if (!dna) return alert('Please enter a valid DNA sequence!');
+        const mrna = dna.replace(/T/g, 'U');
+        const codons = mrna.match(/.{1,3}/g) || [];
+        let html = codons.map(codon => {
+          if (codon === 'AUG') return `<span class="highlight-start">${codon}</span>`;
+          if (['UAA', 'UAG', 'UGA'].includes(codon)) return `<span class="highlight-stop">${codon}</span>`;
+          return codon;
+        }).join(' ');
+        document.getElementById('mrnaSequence').innerHTML = html;
+        mrnaContainer.classList.remove('hidden');
+      });
+  
+      translateBtn.addEventListener('click', () => {
+        const mrna = document.getElementById('mrnaSequence').textContent.replace(/\s/g, '');
+        const startIndex = mrna.indexOf('AUG');
+        if (startIndex === -1) return alert('No start codon (AUG) found!');
+        let proteinChain = [];
+        for (let i = startIndex; i < mrna.length; i += 3) {
+          const codon = mrna.substr(i, 3);
+          if (codon.length < 3) break;
+          const aa = codonTable[codon];
+          if (!aa || aa === 'STOP') break;
+          proteinChain.push(aa);
+        }
+        document.getElementById('proteinChain').innerHTML = proteinChain.map(aa => `<span>${aa}</span>`).join(' → ');
+        proteinContainer.classList.remove('hidden');
+      });
+  
+      mutateBtn.addEventListener('click', () => {
+        mutationControls.classList.remove('hidden');
+      });
+  
+      document.querySelectorAll('.mutation-options button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const type = btn.dataset.type;
+          let dna = dnaInput.value.toUpperCase();
+          const rand = Math.floor(Math.random() * dna.length);
+          const bases = ['A', 'T', 'C', 'G'];
+          let newBase = bases[Math.floor(Math.random() * 4)];
+          let log = '';
+          switch (type) {
+            case 'substitution':
+              newBase = bases.filter(b => b !== dna[rand])[Math.floor(Math.random() * 3)];
+              dna = dna.slice(0, rand) + newBase + dna.slice(rand + 1);
+              log = `Substitution at position ${rand + 1}: ${dna[rand]} → ${newBase}`;
+              break;
+            case 'insertion':
+              dna = dna.slice(0, rand) + newBase + dna.slice(rand);
+              log = `Inserted ${newBase} at position ${rand + 1}`;
+              break;
+            case 'deletion':
+              dna = dna.slice(0, rand) + dna.slice(rand + 1);
+              log = `Deleted base at position ${rand + 1}`;
+              break;
+          }
+          dnaInput.value = dna;
+          mutationLog.innerHTML += `• ${log}<br>`;
+        });
+      });
+  
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        mutationControls.classList.add('hidden');
+      });
+    </script>
+  </body>
+  </html>
+  

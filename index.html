@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GeneMapper - Visualize the Central Dogma of Molecular Biology</title>
+  <meta name="description" content="Transform DNA into mRNA, simulate mutations, and decode protein sequences visually">
+  <link rel="stylesheet" href="stylesheet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header class="header" role="banner">
+      <h1 class="title" aria-label="GeneMapper Main Title">GeneMapper</h1>
+      <p class="subtitle">Visualize the Central Dogma of Molecular Biology</p>
+    </header>
+
+    <main class="content" role="main">
+      <p class="description">Transform DNA into mRNA, simulate mutations, and decode protein sequences — all visually.</p>
+      <a href="app.html" class="cta-button" aria-label="Get started with GeneMapper">Get Started</a>
+    </main>
+
+    <footer class="footer" role="contentinfo">
+      Built with ❤️ by Charan | Biotech meets Code
+    </footer>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('.title')?.classList.add('fade-in-top');
+      document.querySelector('.subtitle')?.classList.add('fade-in');
+      document.querySelector('.cta-button')?.classList.add('fade-in-scale');
+    });
+  </script>
+</body>
+</html>
