@@ -240,6 +240,21 @@
         flex-direction: column;
       }
     }
+    @media (max-width: 600px) {
+  .mutation-controls label {
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  .mutation-controls input,
+  .mutation-controls select {
+    width: 100% !important;
+  }
+
+  .mutation-controls button {
+    width: 100%;
+  }
+}
   </style>
 </head>
 <body>
@@ -372,7 +387,11 @@
           if (!aa || aa === 'STOP') break;
           proteinChain.push(aa);
         }
-        document.getElementById('proteinChain').innerHTML = proteinChain.map(aa => `<span>${aa}</span>`).join(' → ');
+        document.getElementById('proteinChain').innerHTML = proteinChain.map((aa, idx) => {
+          const codon = mrna.substr(startIndex + idx * 3, 3);
+          return `<span title="${codon}">${aa}</span>`;
+          }).join(' → ');
+
         proteinContainer.classList.remove('hidden');
       });
   
@@ -450,6 +469,13 @@
   mutationLog.appendChild(entry);
   mutationLog.scrollTop = mutationLog.scrollHeight;
 }
+    dnaInput.addEventListener('input', () => {
+  dnaInput.value = dnaInput.value.toUpperCase().replace(/[^ATCG]/g, '');
+});
+dnaInput.addEventListener('input', () => {
+  dnaInput.value = dnaInput.value.toUpperCase().replace(/[^ATCG]/g, '');
+});
+
 
     </script>
   </body>
