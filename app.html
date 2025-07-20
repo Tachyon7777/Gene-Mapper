@@ -100,6 +100,29 @@
       background: #666;
     }
 
+    /* Manual Mutation Inputs Styling */
+.mutation-controls input[type="number"],
+.mutation-controls input[type="text"],
+.mutation-controls select {
+  background: rgba(10, 16, 24, 0.8);
+  color: var(--mRNA-purple);
+  border: 1px solid var(--mRNA-purple);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.mutation-controls input[type="number"]:focus,
+.mutation-controls input[type="text"]:focus,
+.mutation-controls select:focus {
+  box-shadow: 0 0 8px var(--mRNA-purple);
+  border-color: var(--mRNA-purple);
+}
+
+
     .output-container {
       background: rgba(26, 42, 58, 0.5);
       border-radius: 10px;
@@ -254,11 +277,33 @@
           <button data-type="insertion">Random Insertion</button>
           <button data-type="deletion">Random Deletion</button>
         </div>
+        <h3>Manual Mutation</h3>
+        <label>
+        Position:
+        <input type="number" id="mutationIndex" min="0" style="width: 70px;" />
+        </label>
+        <label>
+         Base:
+        <input type="text" id="mutationBase" maxlength="1" style="width: 50px;" />
+        </label>
+        <label>
+        Type:
+        <select id="mutationType">
+        <option value="substitution">Substitution</option>
+        <option value="insertion">Insertion</option>
+        <option value="deletion">Deletion</option>
+        </select>
+        </label>
+        <button onclick="mutateManual()" class="glow-button" style="margin-left: 0.5rem;">Mutate Manually</button>
         <h3>Mutation Log</h3>
         <div id="mutationLog" class="log"></div>
         <button id="resetBtn" class="glow-button">Hide Controls</button>
+        <div style="margin-top: 1rem;">
       </div>
+
+     </div>
     </div>
+    
   
     <script>
       const codonTable = {
@@ -366,6 +411,46 @@
       document.getElementById('resetBtn').addEventListener('click', () => {
         mutationControls.classList.add('hidden');
       });
+      function mutateManual() {
+  const index = parseInt(document.getElementById("mutationIndex").value);
+  const base = document.getElementById("mutationBase").value.toUpperCase();
+  const type = document.getElementById("mutationType").value;
+
+  let dna = dnaInput.value.toUpperCase();
+  const bases = ['A', 'T', 'C', 'G'];
+  let logMsg = "";
+
+  if (type !== "deletion" && !bases.includes(base)) {
+    alert("Invalid base entered.");
+    return;
+  }
+
+  if (isNaN(index) || index < 0 || index > dna.length) {
+    alert("Invalid position.");
+    return;
+  }
+
+  if (type === "substitution") {
+    logMsg = `🧬 Substitution at position ${index + 1}: ${dna[index]} → ${base}`;
+    dna = dna.slice(0, index) + base + dna.slice(index + 1);
+  } else if (type === "insertion") {
+    logMsg = `➕ Inserted ${base} at position ${index + 1}`;
+    dna = dna.slice(0, index) + base + dna.slice(index);
+  } else if (type === "deletion") {
+    logMsg = `❌ Deleted ${dna[index]} at position ${index + 1}`;
+    dna = dna.slice(0, index) + dna.slice(index + 1);
+  }
+
+  dnaInput.value = dna;
+
+  // Create and style log entry
+  const entry = document.createElement("div");
+  entry.className = "log-entry";
+  entry.textContent = logMsg;
+  mutationLog.appendChild(entry);
+  mutationLog.scrollTop = mutationLog.scrollHeight;
+}
+
     </script>
   </body>
   </html>
